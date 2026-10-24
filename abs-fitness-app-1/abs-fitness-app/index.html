@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Abs Fitness 排课</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Abs Fitness">
+<meta name="theme-color" content="#f3e6d8">
+<style>
+:root{--bg:#f3e6d8;--card:#fdf7f0;--brown:#8b5e3c;--dark:#4a3426;--line:#dcc7b2;--ok:#5a7d4a;--red:#b5543c;color-scheme:light}
+*{box-sizing:border-box}
+html{background:#f3e6d8;min-height:100%}body{margin:0;background:#f3e6d8;color:var(--dark);font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+button{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:8px 12px;background:var(--brown);color:#fff}
+button.ghost{background:transparent;color:var(--brown);border:1px solid var(--line)}
+button.danger{background:var(--red)}
+input,select,textarea{font:inherit;padding:8px;border:1px solid var(--line);border-radius:8px;background:#fff;width:100%;color:var(--dark)}
+.wrap{max-width:960px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+h1{font-size:20px;margin:0}
+nav{display:flex;gap:6px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.login{max-width:320px;margin:15vh auto;display:flex;flex-direction:column;gap:10px}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.dow{text-align:center;font-size:12px;color:var(--brown);padding:4px}
+.day{background:#fffaf4;border:1px solid var(--line);border-radius:8px;min-height:96px;padding:4px;cursor:pointer;font-size:12px;overflow:hidden}
+.day:hover{border-color:var(--brown)}
+.day.other{opacity:.4}
+.day.today{outline:2px solid var(--brown)}
+.num{font-weight:600;margin-bottom:2px}
+.ev{background:#efe0cf;border-radius:4px;padding:1px 4px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.done{background:#dfe9d6}
+.mtitle{font-size:20px;font-weight:700;cursor:pointer;color:var(--dark)}
+.card .row button.ghost{border-radius:999px;padding:6px 14px}
+.grid{gap:6px}
+.dow{font-size:12px;color:#8d7564;font-weight:600;letter-spacing:.5px;padding:6px 4px}
+.day{background:#fffaf4;border:1px solid transparent;border-radius:12px;min-height:96px;padding:6px;box-shadow:0 1px 2px rgba(74,52,38,.06);transition:border-color .15s,transform .15s}
+.day:hover{border-color:var(--line);transform:translateY(-1px)}
+.day.today{border-color:var(--brown)}
+.num{font-size:13px;font-weight:600;color:var(--dark);margin-bottom:4px}
+.day.today .num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--brown);color:#fff;margin-bottom:4px}
+.ev{background:#efe0cf;color:var(--dark);border-radius:6px;padding:2px 6px;margin-top:3px;font-size:11px}
+.ev.done{background:var(--ok);color:#fff}
+.pev{background:#fff;color:var(--dark);border-left:3px solid var(--brown);border-radius:6px;padding:2px 6px;margin-top:3px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-cls.pe{background:#fff;border-left:3px solid var(--brown)}
+.pev{cursor:grab;touch-action:none;user-select:none}
+.pev.dragging{opacity:.35}
+.pkg-row{border:1px solid var(--line);border-radius:10px;padding:8px;display:grid;gap:6px;background:#fffaf4}
+@media print{header,.noprint,.modal{display:none!important} html,body{background:#fff!important} .wrap{padding:0} #payslip{border:0;box-shadow:none}}
+.pev.ghost{position:fixed;transform:translate(-50%,-50%);pointer-events:none;z-index:20;width:110px;box-shadow:0 4px 12px rgba(74,52,38,.3)}
+.ev .x{float:right;padding:0 3px;color:var(--red);font-weight:700;cursor:pointer}
+.ev{cursor:grab;touch-action:none;user-select:none}
+.ev.dragging{opacity:.35}
+.ev.ghost{position:fixed;transform:translate(-50%,-50%);pointer-events:none;z-index:20;width:110px;background:#d9b99b;box-shadow:0 4px 12px rgba(74,52,38,.3);opacity:.95}
+.day.drop{border:2px dashed var(--brown);background:#f6ead9}
+.dh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
+.dd{font-size:22px;font-weight:700}
+.icon{background:transparent;color:var(--brown);border:1px solid var(--line);width:36px;height:36px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px}
+.dlist{display:flex;flex-direction:column;gap:10px}
+.cls{background:#fffaf4;border:1px solid var(--line);border-radius:12px;padding:12px}
+.cls.is-done{background:#f1f5ea;border-color:#c9d8b8}
+.cls-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.cls-who{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.nm{font-weight:700;color:var(--dark);text-decoration:underline;cursor:pointer}
+.tm{width:auto;padding:4px 8px;font-size:14px}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:14px;cursor:pointer;color:var(--brown)}
+.pill.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.pill input{display:none}
+.fc{margin-top:8px;background:#fff}
+.cls-foot{text-align:right;margin-top:6px}
+.link{background:none;color:#a0503a;padding:4px 2px;font-size:13px;border-radius:0}
+.empty{text-align:center;color:#8d7564;padding:18px 0;font-size:14px}
+.add{margin-top:16px;padding-top:14px;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:8px}
+.sec{font-weight:700;color:var(--brown)}
+.row2{display:grid;grid-template-columns:1fr 2fr;gap:8px}
+.primary{width:100%;padding:12px;font-size:16px}
+.tl{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fffaf4}
+.tl-row{display:grid;grid-template-columns:84px 1fr;border-top:1px solid var(--line);min-height:52px}
+.tl-row:first-child{border-top:0}
+.tl-hr{font-size:12px;color:var(--brown);padding:8px;border-right:1px solid var(--line);white-space:nowrap}
+.tl-body{padding:6px 8px;display:flex;flex-direction:column;gap:6px}
+.tl-cls{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;background:#efe0cf;border-radius:8px;padding:6px 8px}
+.tl-cls.is-done{background:#dfe9d6}
+.tl-main{display:flex;flex-direction:column}
+.tl-ops{display:flex;align-items:center;gap:8px}
+.ygrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.ym{background:#fffaf4;border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer}
+.ym:hover{border-color:var(--brown)}
+.ym.now{outline:2px solid var(--brown)}
+.ym-name{font-size:18px;font-weight:700;margin-bottom:4px}
+.ygrid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px 12px}
+.mm{cursor:pointer;padding:2px}
+.mm-name{font-size:17px;font-weight:700;margin-bottom:6px;color:var(--dark)}
+.mm-name.now{color:var(--red)}
+.mm-grid{display:grid;grid-template-columns:repeat(7,1fr);font-size:10px;text-align:center}
+.mm-grid span{position:relative;padding:2px 0;line-height:1.3}
+.mm-grid .wd{color:#8d7564;font-size:9px}
+.mm-grid .td{background:var(--red);color:#fff;border-radius:50%}
+.mm-grid i{position:absolute;left:50%;bottom:-2px;width:3px;height:3px;border-radius:50%;background:var(--brown);transform:translateX(-50%)}
+.tl-plus{align-self:flex-start;background:none;color:var(--brown);border:1px dashed var(--line);padding:2px 8px;font-size:12px;border-radius:6px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{padding:8px;border-bottom:1px solid var(--line);text-align:left}
+.modal{position:fixed;inset:0;background:rgba(74,52,38,.35);display:none;align-items:center;justify-content:center;padding:12px;z-index:10}
+.modal .card{width:100%;max-width:460px;max-height:90vh;overflow:auto}
+.muted{color:#8d7564;font-size:13px}
+.err{color:var(--red);font-size:13px}
+@media(max-width:640px){.grid{gap:2px}.day{min-height:72px;font-size:10px;padding:2px}.ev{font-size:10px}.wrap{padding:10px}}
+</style>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script>
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(() => {}); }
+</script>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<div class="modal" id="modal"><div class="card" id="modalBody"></div></div>
+
+<script>
+const KEY = 'gym_v1', AUTH = 'gym_auth_v1';
+let db = load();
+db.events = db.events || [];
+db.payslips = db.payslips || [];
+let authed = true;
+let view = { name: 'cal', y: new Date().getFullYear(), m: new Date().getMonth(), sid: null };
+let curDay = null;
+
+function load(){ try { return JSON.parse(localStorage.getItem(KEY)) || { students: [], classes: [] }; } catch(e){ return { students: [], classes: [] }; } }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(db)); } catch(e){} }
+const uid = () => Math.random().toString(36).slice(2, 9);
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const todayKey = () => ymd(new Date());
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nameOf = sid => db.students.find(s => s.id === sid)?.name ?? '?';
+const dayList = k => db.classes.filter(c => c.date === k).sort((a, b) => a.time.localeCompare(b.time));
+function pkgsOf(s){ return s.packages && s.packages.length ? s.packages : [{ id: 'p0', total: s.total || 0, price: s.price || 0, rate: s.rate || 30 }]; }
+function pkgUsage(s){
+  const pkgs = pkgsOf(s);
+  const used = pkgs.map(() => 0);
+  let idx = 0;
+  const consume = () => {
+    while (idx < pkgs.length - 1 && used[idx] >= (pkgs[idx].total || 0)) idx++;
+    used[idx]++;
+  };
+  for (let i = 0; i < (s.prev || 0); i++) consume();
+  db.classes.filter(c => c.sid === s.id && c.done)
+    .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
+    .forEach(consume);
+  return { pkgs, used };
+}
+function stats(s){
+  const { pkgs, used } = pkgUsage(s);
+  const usedSum = used.reduce((a, b) => a + b, 0);
+  const total = pkgs.reduce((a, p) => a + (p.total || 0), 0);
+  return { used: usedSum, left: total ? total - usedSum : null, total };
+}
+function pkgBlockHTML(s){
+  const { pkgs, used } = pkgUsage(s);
+  const rows = pkgs.map((p, i) => {
+    const c = p.total ? (p.price / p.total) * ((p.rate || 30) / 100) * used[i] : 0;
+    return `<tr><td>第 ${i + 1} 套</td><td>${p.total || '—'} 堂</td><td>RM ${p.price || 0}</td><td>${p.rate || 30}%</td><td>${used[i]} / ${p.total || '—'}</td><td>RM ${c.toFixed(2)}</td></tr>`;
+  }).join('');
+  return `<div style="margin:10px 0"><table><tr><th>套餐</th><th>堂数</th><th>价格</th><th>抽佣</th><th>已上</th><th>佣金</th></tr>${rows}</table>
+    <div style="text-align:right;margin-top:8px"><button class="ghost" onclick="renewForm('${s.id}')">+ 续课</button></div></div>`;
+}
+function renewForm(sid){
+  $('modalBody').innerHTML = `<h1>续课</h1>
+    <div style="display:grid;gap:8px;margin-top:10px">
+      <input id="r_total" type="number" placeholder="堂数">
+      <input id="r_price" type="number" placeholder="价格 RM">
+      <select id="r_rate"><option value="30">抽佣 30%</option><option value="40">抽佣 40%</option></select>
+    </div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px"><button class="ghost" onclick="closeModal()">取消</button><button onclick="saveRenew('${sid}')">保存</button></div>`;
+  $('modal').style.display = 'flex';
+}
+function saveRenew(sid){
+  const s = db.students.find(x => x.id === sid);
+  if (!s) return;
+  if (!s.packages) s.packages = pkgsOf(s).map(p => ({ ...p }));
+  s.packages.push({ id: uid(), total: Number($('r_total').value) || 0, price: Number($('r_price').value) || 0, rate: Number($('r_rate').value) || 30 });
+  save(); closeModal(); render();
+}
+function statsOld(s){
+  const done = db.classes.filter(c => c.sid === s.id && c.done).length;
+  const used = done + (s.prev || 0);
+  return { used, left: s.total ? s.total - used : null, total: s.total };
+}
+
+/* ---------- login ---------- */
+async function hash(text){
+  if (window.crypto && crypto.subtle) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  let h = 0;
+  for (const ch of text) h = (Math.imul(h, 31) + ch.charCodeAt(0)) | 0;
+  return 'f' + (h >>> 0).toString(16);
+}
+function renderLogin(){
+  const setup = !localStorage.getItem(AUTH);
+  $('app').innerHTML = `<div class="card login">
+    <h1>${setup ? '设置登入密码' : '登入'}</h1>
+    ${setup ? '<div class="muted">第一次使用，请设置一个密码。</div>' : ''}
+    <input type="password" id="pw" placeholder="密码">
+    ${setup ? '<input type="password" id="pw2" placeholder="再输入一次">' : ''}
+    <div class="err" id="lerr"></div>
+    <button id="lbtn">${setup ? '设置并进入' : '进入'}</button>
+  </div>`;
+  const go = async () => {
+    const p = $('pw').value;
+    if (!p) { $('lerr').textContent = '请输入密码'; return; }
+    const h = await hash(p);
+    if (setup) {
+      if (p !== $('pw2').value) { $('lerr').textContent = '两次密码不一致'; return; }
+      localStorage.setItem(AUTH, h); authed = true; render();
+    } else if (h === localStorage.getItem(AUTH)) {
+      authed = true; render();
+    } else {
+      $('lerr').textContent = '密码错误';
+    }
+  };
+  $('lbtn').onclick = go;
+  $('pw').onkeydown = e => { if (e.key === 'Enter') go(); };
+}
+function logout(){ authed = false; render(); }
+
+/* ---------- navigation ---------- */
+function go(name, sid){
+  view.name = name;
+  if (sid) view.sid = sid;
+  render();
+  window.scrollTo(0, 0);
+}
+function yearHTMLOld(){
+  const y = view.y, now = new Date();
+  const cards = Array.from({ length: 12 }, (_, m) => {
+    const prefix = `${y}-${pad(m + 1)}-`;
+    const inMonth = db.classes.filter(c => c.date.startsWith(prefix));
+    const done = inMonth.filter(c => c.done).length;
+    const isNow = y === now.getFullYear() && m === now.getMonth();
+    return `<div class="ym ${isNow ? 'now' : ''}" onclick="pickMonth(${m})">
+      <div class="ym-name">${m + 1} 月</div>
+      <div class="muted">${inMonth.length} 节课${inMonth.length ? ` · 已出席 ${done}` : ''}</div>
+    </div>`;
+  }).join('');
+  return `<div class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:12px">
+      <button class="ghost" onclick="shiftYear(-1)">‹ ${y - 1}</button>
+      <b>${y} 年</b>
+      <button class="ghost" onclick="shiftYear(1)">${y + 1} ›</button>
+    </div>
+    <div class="ygrid">${cards}</div>
+  </div>`;
+}
+function yearHTML(){
+  const y = view.y, now = new Date(), tk = todayKey();
+  const names = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const wd = ['一','二','三','四','五','六','日'];
+  const cards = Array.from({ length: 12 }, (_, m) => {
+    const first = (new Date(y, m, 1).getDay() + 6) % 7;
+    const dim = new Date(y, m + 1, 0).getDate();
+    let cells = '';
+    for (let i = 0; i < first; i++) cells += '<span></span>';
+    for (let d = 1; d <= dim; d++){
+      const k = ymd(new Date(y, m, d));
+      const has = db.classes.some(c => c.date === k);
+      cells += `<span class="${k === tk ? 'td' : ''}">${d}${has ? '<i></i>' : ''}</span>`;
+    }
+    const isNow = y === now.getFullYear() && m === now.getMonth();
+    return `<div class="mm" onclick="pickMonth(${m})">
+      <div class="mm-name ${isNow ? 'now' : ''}">${names[m]}</div>
+      <div class="mm-grid">${wd.map(x => `<span class="wd">${x}</span>`).join('')}${cells}</div>
+    </div>`;
+  }).join('');
+  return `<div class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:12px">
+      <button class="ghost" onclick="shiftYear(-1)">‹ ${y - 1}</button>
+      <b>${y} 年</b>
+      <button class="ghost" onclick="shiftYear(1)">${y + 1} ›</button>
+    </div>
+    <div class="ygrid">${cards}</div>
+  </div>`;
+}
+function pickMonth(m){
+  view.m = m;
+  go('cal');
+}
+function shiftYear(n){
+  view.y += n;
+  render();
+}
+function shift(n){
+  const mm = view.m + n;
+  view.y += Math.floor(mm / 12);
+  view.m = ((mm % 12) + 12) % 12;
+  render();
+}
+
+/* ---------- calendar ---------- */
+function fmt12(t){
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  return `${h % 12 || 12}:${pad(m)} ${h < 12 ? 'AM' : 'PM'}`;
+}
+function calHTML(){
+  const { y, m } = view;
+  const first = (new Date(y, m, 1).getDay() + 6) % 7;
+  const tk = todayKey();
+  let cells = '';
+  for (let i = 0; i < 42; i++){
+    const dt = new Date(y, m, i - first + 1);
+    const k = ymd(dt);
+    const other = dt.getMonth() !== m;
+    const list = dayList(k);
+    cells += `<div class="day${other ? ' other' : ''}${k === tk ? ' today' : ''}" data-d="${k}" onclick="dayClick('${k}')">
+      <div class="num">${dt.getDate()}</div>
+      ${list.map(c => `<div class="ev${c.done ? ' done' : ''}" data-id="${c.id}">${c.done ? '√ ' : ''}${esc(nameOf(c.sid))} ${esc(fmt12(c.time))}</div>`).join('')}
+      ${evsOn(k).map(e => `<div class="pev" data-id="${e.id}" data-kind="event">${esc(fmt12(e.time))} ${esc(e.title)}</div>`).join('')}
+    </div>`;
+  }
+  return `<div class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <button class="ghost" onclick="shift(-1)">‹ 上月</button>
+      <b class="mtitle" onclick="go('year')">${y} 年 ${m + 1} 月</b>
+      <button class="ghost" onclick="shift(1)">下月 ›</button>
+    </div>
+    <div class="grid">${['一','二','三','四','五','六','日'].map(d => `<div class="dow">${d}</div>`).join('')}${cells}</div>
+  </div>`;
+}
+
+function openDayOld(k){
+  curDay = k;
+  const list = dayList(k);
+  const opts = db.students.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  $('modalBody').innerHTML = `
+    <div class="row" style="justify-content:space-between"><h1>${k}</h1><button class="ghost" onclick="closeModal()">关闭</button></div>
+    <div style="margin:10px 0">
+      ${list.length ? list.map(c => `<div class="card" style="margin-bottom:8px;padding:10px">
+        <div class="row" style="justify-content:space-between">
+          <b style="cursor:pointer;text-decoration:underline" onclick="closeModal(); go('student', '${c.sid}')">${esc(nameOf(c.sid))}</b> <input type="time" value="${esc(c.time)}" style="width:auto" onchange="setTime('${c.id}', this.value)">
+          <label class="row" style="gap:4px"><input type="checkbox" style="width:auto" ${c.done ? 'checked' : ''} onchange="toggleDone('${c.id}')"> 出席 <span style="color:var(--ok)">${c.done ? '√' : ''}</span></label>
+        </div>
+        <input value="${esc(c.focus)}" placeholder="训练内容，如 LEG" style="margin-top:6px" onchange="setFocus('${c.id}', this.value)">
+        <div style="text-align:right"><button class="ghost danger" onclick="delClass('${c.id}')">删除</button></div>
+      </div>`).join('') : '<div class="muted">这一天还没有课</div>'}
+    </div>
+    ${db.students.length ? `<h1 style="font-size:16px">新增上课</h1>
+      <select id="ns" style="margin:8px 0">${opts}</select>
+      <div class="row"><input type="time" id="nt" value="10:00" style="flex:1"><input id="nf" placeholder="训练内容，如 LEG" style="flex:2"></div>
+      <div style="text-align:right;margin-top:8px"><button onclick="addClass()">加入</button></div>`
+      : '<div class="muted">请先到「学员」新增学员</div>'}`;
+  $('modal').style.display = 'flex';
+}
+function openDayList(k){
+  curDay = k;
+  const list = dayList(k);
+  const d = new Date(k + 'T00:00:00');
+  const wk = ['日','一','二','三','四','五','六'][d.getDay()];
+  const opts = db.students.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  const doneCount = list.filter(c => c.done).length;
+  $('modalBody').innerHTML = `
+    <div class="dh">
+      <div><div class="dd">${d.getMonth() + 1} 月 ${d.getDate()} 日</div>
+        <div class="muted">星期${wk} · ${list.length} 节课${list.length ? ` · 已出席 ${doneCount}` : ''}</div></div>
+      <button class="icon" onclick="closeModal()" aria-label="关闭">✕</button>
+    </div>
+    <div class="dlist">
+      ${list.length ? list.map(c => `
+        <div class="cls ${c.done ? 'is-done' : ''}">
+          <div class="cls-top">
+            <div class="cls-who">
+              <a class="nm" onclick="closeModal(); go('student', '${c.sid}')">${esc(nameOf(c.sid))}</a>
+              <input class="tm" type="time" value="${esc(c.time)}" onchange="setTime('${c.id}', this.value)">
+            </div>
+            <label class="pill ${c.done ? 'on' : ''}"><input type="checkbox" ${c.done ? 'checked' : ''} onchange="toggleDone('${c.id}')">${c.done ? '✓ 已出席' : '出席'}</label>
+          </div>
+          <input class="fc" value="${esc(c.focus)}" placeholder="训练内容，如 LEG" onchange="setFocus('${c.id}', this.value)">
+          <div class="cls-foot"><button class="link" onclick="delClass('${c.id}')">删除这节课</button></div>
+        </div>`).join('') : '<div class="empty">这一天还没有课</div>'}
+    </div>
+    ${db.students.length ? `
+    <div class="add">
+      <div class="sec">新增上课</div>
+      <select id="ns">${opts}</select>
+      <div class="row2"><input type="time" id="nt" value="10:00"><input id="nf" placeholder="训练内容，如 LEG"></div>
+      <button class="primary" onclick="addClass()">加入</button>
+    </div>` : '<div class="empty">请先到「学员」新增学员</div>'}`;
+  $('modal').style.display = 'flex';
+}
+function prefill(t){
+  if (!$('nt')) return;
+  $('nt').value = t;
+  $('nt').scrollIntoView({ block: 'center' });
+  $('nf')?.focus();
+}
+function openDay(k){
+  curDay = k;
+  const list = dayList(k);
+  const d = new Date(k + 'T00:00:00');
+  const wk = ['日','一','二','三','四','五','六'][d.getDay()];
+  const hourOf = t => +t.split(':')[0];
+  const pev = evsOn(k);
+  const hrs = [...list.map(c => hourOf(c.time)), ...pev.map(e => hourOf(e.time))];
+  const start = Math.min(6, ...hrs), end = Math.max(22, ...hrs);
+  const opts = db.students.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
+  let rows = '';
+  for (let h = start; h <= end; h++){
+    const items = list.filter(c => hourOf(c.time) === h);
+    const pe = pev.filter(e => hourOf(e.time) === h);
+    rows += `<div class="tl-row">
+      <div class="tl-hr">${fmt12(pad(h) + ':00')}</div>
+      <div class="tl-body">
+        ${items.map(c => `<div class="tl-cls ${c.done ? 'is-done' : ''}">
+          <div class="tl-main">
+            <a class="nm" onclick="closeModal(); go('student', '${c.sid}')">${esc(nameOf(c.sid))}</a>
+            <span class="muted">${esc(fmt12(c.time))}${c.focus ? ' · ' + esc(c.focus) : ''}</span>
+          </div>
+          <div class="tl-ops">
+            <label class="pill ${c.done ? 'on' : ''}"><input type="checkbox" ${c.done ? 'checked' : ''} onchange="toggleDone('${c.id}')">${c.done ? '✓ 已出席' : '出席'}</label>
+            <button class="link" onclick="delClass('${c.id}')">删除</button>
+          </div>
+        </div>`).join('')}
+        ${pe.map(e => `<div class="tl-cls pe"><div class="tl-main"><b>${esc(e.title)}</b><span class="muted">${esc(fmt12(e.time))}</span></div><div class="tl-ops"><button class="link" onclick="delEvent('${e.id}')">删除</button></div></div>`).join('')}
+        <button class="tl-plus" onclick="prefill('${pad(h)}:00')">+ 在此时段新增</button>
+      </div>
+    </div>`;
+  }
+  $('modalBody').innerHTML = `
+    <div class="dh">
+      <div><div class="dd">${d.getMonth() + 1} 月 ${d.getDate()} 日</div>
+        <div class="muted">星期${wk} · ${list.length} 节课${list.length ? ` · 已出席 ${list.filter(c => c.done).length}` : ''}</div></div>
+      <button class="icon" onclick="closeModal()" aria-label="关闭">✕</button>
+    </div>
+    <div class="tl">${rows}</div>
+    <div class="add">
+      <div class="sec">个人行程</div>
+      <div class="row2"><input type="time" id="et" value="09:00"><input id="etitle" placeholder="行程，如 出门去机场"></div>
+      <button class="primary" onclick="addEvent()">加入行程</button>
+    </div>
+    ${db.students.length ? `
+    <div class="add">
+      <div class="sec">新增上课</div>
+      <select id="ns">${opts}</select>
+      <div class="row2"><input type="time" id="nt" value="10:00"><input id="nf" placeholder="训练内容，如 LEG"></div>
+      <button class="primary" onclick="addClass()">加入</button>
+    </div>` : '<div class="empty">请先到「学员」新增学员</div>'}`;
+  $('modal').style.display = 'flex';
+}
+function evsOn(k){ return (db.events || []).filter(e => e.date === k && e.time); }
+function addEvent(){
+  const title = $('etitle').value.trim();
+  if (!title) return;
+  db.events.push({ id: uid(), date: curDay, time: $('et').value || '09:00', title });
+  save(); openDay(curDay); render();
+}
+function delEvent(id){
+  db.events = db.events.filter(e => e.id !== id);
+  save(); openDay(curDay); render();
+}
+function addClass(){
+  const sid = $('ns').value, time = $('nt').value || '10:00', focus = $('nf').value.trim();
+  db.classes.push({ id: uid(), sid, date: curDay, time, focus, done: false });
+  save(); openDay(curDay); render();
+}
+function toggleDone(id){
+  const c = db.classes.find(x => x.id === id);
+  if (c) c.done = !c.done;
+  save(); openDay(curDay); render();
+}
+function toggleAttend(id){
+  const c = db.classes.find(x => x.id === id);
+  if (c) c.done = !c.done;
+  save(); render();
+}
+let pendingDel = null;
+function quickDel(id){
+  db.classes = db.classes.filter(x => x.id !== id);
+  save(); render();
+}
+function setTime(id, t){
+  const c = db.classes.find(x => x.id === id);
+  if (!c || !t) return;
+  c.time = t;
+  save(); openDay(curDay); render();
+}
+function setFocus(id, f){
+  const c = db.classes.find(x => x.id === id);
+  if (!c) return;
+  c.focus = f.trim();
+  save(); openDay(curDay); render();
+}
+function delClass(id){
+  db.classes = db.classes.filter(x => x.id !== id);
+  save(); openDay(curDay); render();
+}
+function closeModal(){ $('modal').style.display = 'none'; }
+
+/* ---------- students ---------- */
+function studentsHTML(){
+  const cards = [...db.students].sort((a, b) => a.name.localeCompare(b.name, 'zh')).map(s => {
+    const st = stats(s);
+    return `<div class="card" style="cursor:pointer;margin-bottom:8px" onclick="go('student','${s.id}')">
+      <div class="row" style="justify-content:space-between"><b>${esc(s.name)}</b><span class="muted">${s.type === 'Trial' ? '试上' : '套餐'}</span></div>
+      <div class="muted">已上 ${st.used}${st.total ? ` / 总 ${st.total} · 余 ${st.left}` : ''}</div>
+    </div>`;
+  }).join('');
+  return `<div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <b>学员 (${db.students.length})</b><button onclick="studentForm()">+ 新增学员</button>
+    </div>${cards || '<div class="card muted">还没有学员</div>'}`;
+}
+function studentForm(id){
+  const s = id ? db.students.find(x => x.id === id) : null;
+  const v = s || { name: '', type: 'Package', total: '', price: '', prev: 0, phone: '', goal: '', notes: '' };
+  $('modalBody').innerHTML = `<h1>${s ? '编辑学员' : '新增学员'}</h1>
+    <div style="display:grid;gap:8px;margin-top:10px">
+      <input id="f_name" placeholder="名字" value="${esc(v.name)}">
+      <select id="f_type"><option value="Package" ${v.type !== 'Trial' ? 'selected' : ''}>Package</option><option value="Trial" ${v.type === 'Trial' ? 'selected' : ''}>Trial</option></select>
+      <input id="f_total" type="number" placeholder="堂数" value="${v.total}">
+      <input id="f_price" type="number" placeholder="价格 RM" value="${v.price}">
+      <select id="f_rate"><option value="30" ${v.rate !== 40 ? 'selected' : ''}>抽佣 30%</option><option value="40" ${v.rate === 40 ? 'selected' : ''}>抽佣 40%</option></select>
+      <input id="f_prev" type="number" placeholder="已出席的堂数" value="${v.prev || 0}">
+      <input id="f_phone" placeholder="电话号码" value="${esc(v.phone)}">
+      <input id="f_goal" placeholder="目标" value="${esc(v.goal)}">
+      <textarea id="f_notes" rows="3" placeholder="备注">${esc(v.notes)}</textarea>
+    </div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="ghost" onclick="closeModal()">取消</button>
+      <button onclick="saveStudent('${id || ''}')">保存</button>
+    </div>`;
+  $('modal').style.display = 'flex';
+}
+function saveStudent(id){
+  const name = $('f_name').value.trim();
+  if (!name) { alert('请输入名字'); return; }
+  const data = {
+    name,
+    type: $('f_type').value,
+    total: Number($('f_total').value) || 0,
+    price: Number($('f_price').value) || 0,
+    prev: Number($('f_prev').value) || 0,
+    rate: Number($('f_rate').value) || 30,
+    phone: $('f_phone').value.trim(),
+    goal: $('f_goal').value.trim(),
+    notes: $('f_notes').value.trim()
+  };
+  if (id){ const s = db.students.find(x => x.id === id); Object.assign(s, data); if (s.packages && s.packages.length) Object.assign(s.packages[0], { total: data.total, price: data.price, rate: data.rate }); }
+  else db.students.push({ id: uid(), ...data });
+  save(); closeModal(); render();
+}
+let formPkgs = [];
+function readPkgs(){
+  return formPkgs.map((p, i) => ({ ...p, total: Number($(`pk_t_${i}`).value) || 0, price: Number($(`pk_p_${i}`).value) || 0, rate: Number($(`pk_r_${i}`).value) || 30 }));
+}
+function pkgRowHTML(p, i){
+  return `<div class="pkg-row">
+    <div class="row" style="justify-content:space-between"><b>第 ${i + 1} 套</b>${formPkgs.length > 1 ? `<button class="link" onclick="removePkg(${i})">删除这套</button>` : ''}</div>
+    <div class="row2"><input type="number" id="pk_t_${i}" placeholder="堂数" value="${p.total || ''}"><input type="number" id="pk_p_${i}" placeholder="价格 RM" value="${p.price || ''}"></div>
+    <select id="pk_r_${i}"><option value="30" ${p.rate !== 40 ? 'selected' : ''}>抽佣 30%</option><option value="40" ${p.rate === 40 ? 'selected' : ''}>抽佣 40%</option></select>
+  </div>`;
+}
+function rebuildPkgs(){ $('pkgList').innerHTML = formPkgs.map(pkgRowHTML).join(''); }
+function addPkg(){ formPkgs = readPkgs(); formPkgs.push({ id: uid(), total: 0, price: 0, rate: 30 }); rebuildPkgs(); }
+function removePkg(i){ formPkgs = readPkgs(); formPkgs.splice(i, 1); rebuildPkgs(); }
+function studentForm(id){
+  const s = id ? db.students.find(x => x.id === id) : null;
+  const v = s || { name: '', type: 'Package', prev: 0, phone: '', goal: '', notes: '' };
+  formPkgs = s ? pkgsOf(s).map(p => ({ ...p })) : [{ id: uid(), total: 0, price: 0, rate: 30 }];
+  $('modalBody').innerHTML = `<h1>${s ? '编辑学员' : '新增学员'}</h1>
+    <div style="display:grid;gap:8px;margin-top:10px">
+      <input id="f_name" placeholder="名字" value="${esc(v.name)}">
+      <select id="f_type"><option value="Package" ${v.type !== 'Trial' ? 'selected' : ''}>Package</option><option value="Trial" ${v.type === 'Trial' ? 'selected' : ''}>Trial</option></select>
+      <input id="f_prev" type="number" placeholder="已出席的堂数" value="${v.prev || 0}">
+      <input id="f_phone" placeholder="电话号码" value="${esc(v.phone)}">
+      <input id="f_goal" placeholder="目标" value="${esc(v.goal)}">
+      <div class="sec">套餐</div>
+      <div id="pkgList" style="display:grid;gap:8px"></div>
+      <button class="ghost" onclick="addPkg()">+ 新增套餐</button>
+      <textarea id="f_notes" rows="3" placeholder="备注">${esc(v.notes)}</textarea>
+    </div>
+    <div class="row" style="justify-content:flex-end;margin-top:12px">
+      <button class="ghost" onclick="closeModal()">取消</button>
+      <button onclick="saveStudent('${id || ''}')">保存</button>
+    </div>`;
+  rebuildPkgs();
+  $('modal').style.display = 'flex';
+}
+function saveStudent(id){
+  const name = $('f_name').value.trim();
+  if (!name) { alert('请输入名字'); return; }
+  const pkgs = readPkgs().map(p => ({ id: p.id, total: p.total, price: p.price, rate: p.rate }));
+  const first = pkgs[0] || { total: 0, price: 0, rate: 30 };
+  const data = {
+    name,
+    type: $('f_type').value,
+    total: first.total,
+    price: first.price,
+    rate: first.rate,
+    packages: pkgs,
+    prev: Number($('f_prev').value) || 0,
+    phone: $('f_phone').value.trim(),
+    goal: $('f_goal').value.trim(),
+    notes: $('f_notes').value.trim()
+  };
+  if (id) Object.assign(db.students.find(x => x.id === id), data);
+  else db.students.push({ id: uid(), ...data });
+  save(); closeModal(); render();
+}
+function ymNow(){ const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`; }
+function shiftComm(n){
+  const [y, m] = (view.ym || ymNow()).split('-').map(Number);
+  const d = new Date(y, m - 1 + n, 1);
+  view.ym = `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+  render();
+}
+// Monthly commission rows: one row per student per package with attended classes in the month
+function commMonthly(ym){
+  const rows = [];
+  db.students.forEach(s => {
+    const pkgs = pkgsOf(s);
+    const cnt = pkgs.map(() => 0);
+    const cntMonth = pkgs.map(() => 0);
+    let idx = 0;
+    const consume = () => {
+      while (idx < pkgs.length - 1 && cnt[idx] >= (pkgs[idx].total || 0)) idx++;
+      cnt[idx]++;
+      return idx;
+    };
+    for (let i = 0; i < (s.prev || 0); i++) consume();
+    db.classes.filter(c => c.sid === s.id && c.done)
+      .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time))
+      .forEach(c => {
+        const i = consume();
+        if (c.date.slice(0, 7) === ym) cntMonth[i]++;
+      });
+    pkgs.forEach((p, i) => {
+      if (!cntMonth[i]) return;
+      const per = p.total ? p.price / p.total : 0;
+      const rate = p.rate || 30;
+      rows.push({ name: s.name, idx: i + 1, pkg: p, n: cntMonth[i], per, rate, amt: per * (rate / 100) * cntMonth[i] });
+    });
+  });
+  return rows;
+}
+function commHTML(){
+  const ym = view.ym || ymNow();
+  const [y, m] = ym.split('-').map(Number);
+  const rows = commMonthly(ym).sort((a, b) => a.name.localeCompare(b.name, 'zh') || a.idx - b.idx);
+  const total = rows.reduce((a, r) => a + r.amt, 0);
+  const classes = rows.reduce((a, r) => a + r.n, 0);
+  const body = rows.map(r => `<tr><td>${esc(r.name)}</td><td>第 ${r.idx} 套</td><td>RM ${r.pkg.price || 0}</td><td>${r.pkg.total || '—'} 堂</td><td>RM ${r.per.toFixed(2)}</td><td>${r.rate}%</td><td>${r.n}</td><td style="text-align:right">RM ${r.amt.toFixed(2)}</td></tr>`).join('');
+  return `<div class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:12px">
+      <button class="ghost" onclick="shiftComm(-1)">‹ 上月</button>
+      <b class="mtitle">佣金报表　${y} 年 ${m} 月</b>
+      <button class="ghost" onclick="shiftComm(1)">下月 ›</button>
+    </div>
+    <table>
+      <tr><th>学员</th><th>套餐</th><th>套餐价格</th><th>堂数</th><th>每堂价值</th><th>抽佣</th><th>本月出席</th><th style="text-align:right">佣金</th></tr>
+      ${body || '<tr><td colspan="8" class="muted">本月没有出席记录</td></tr>'}
+      <tr style="font-weight:700"><td colspan="6">合计</td><td>${classes}</td><td style="text-align:right">RM ${total.toFixed(2)}</td></tr>
+    </table>
+    <div class="muted" style="margin-top:10px">佣金 = 每堂价值 × 抽佣比例 × 本月出席堂数。已出席的堂数按日期先后依次计入套餐。</div>
+  </div>`;
+}
+function salaryCalc(ym){
+  const rows = commMonthly(ym);
+  const r2 = x => Math.round(x * 100) / 100;
+  const comm = r2(rows.reduce((a, r) => a + r.amt, 0));
+  const base = 1700;
+  const gross = r2(base + comm);
+  const epf = r2(base * 0.11);
+  const sisco = 8.25, eif = 3.3, lindungi = 12.35;
+  const net = r2(gross - epf - sisco - eif - lindungi);
+  return { ym, base, comm, gross, epf, sisco, eif, lindungi, net, rows };
+}
+function slipHTML(d, archived){
+  const [y, m] = d.ym.split('-').map(Number);
+  const money = v => `${v < 0 ? '- ' : ''}RM ${Math.abs(v).toFixed(2)}`;
+  const line = (label, v, strong) => `<tr style="${strong ? 'font-weight:700' : ''}"><td>${label}</td><td style="text-align:right">${money(v)}</td></tr>`;
+  const commRows = (d.rows || []).map(r => `<tr><td>${esc(r.name)} · 第 ${r.idx} 套 · ${r.n} 堂 × RM ${(r.per * r.rate / 100).toFixed(2)}</td><td style="text-align:right">RM ${r.amt.toFixed(2)}</td></tr>`).join('');
+  return `<div id="payslip" class="card">
+    <div style="text-align:center;margin-bottom:12px"><b style="font-size:18px">Abs Fitness 工资单</b><div class="muted">${y} 年 ${m} 月${archived ? ` · 存档于 ${esc(d.savedAt || '')}` : ''}</div></div>
+    <table>
+      ${line('基本薄金', d.base)}
+      ${line('佣金', d.comm)}
+      ${line('总收入', d.gross, true)}
+      ${line('EPF (11%)', -d.epf)}
+      ${line('SISCO', -d.sisco)}
+      ${line('EIF', -d.eif)}
+      ${line('LINDUNGI', -d.lindungi)}
+      ${line('实发工资', d.net, true)}
+    </table>
+    <div style="margin-top:14px"><b>佣金明细</b></div>
+    <table>${commRows || '<tr><td class="muted">本月没有佣金记录</td></tr>'}</table>
+  </div>`;
+}
+function archiveListHTML(){
+  if (!db.payslips.length) return '';
+  const list = [...db.payslips].sort((a, b) => b.ym.localeCompare(a.ym)).map(p => `<tr><td>${p.ym}</td><td style="text-align:right">RM ${p.net.toFixed(2)}</td><td style="text-align:right"><button class="link" onclick="view.archive='${p.id}'; render()">查看</button> <button class="link" onclick="delPayslip('${p.id}')">删除</button></td></tr>`).join('');
+  return `<div class="card noprint" style="margin-top:14px"><div class="sec" style="margin-bottom:8px">已存档的工资单</div><table>${list}</table></div>`;
+}
+function salaryHTML(){
+  if (view.archive){
+    const a = db.payslips.find(p => p.id === view.archive);
+    if (a) return `<div class="row noprint" style="justify-content:space-between;margin-bottom:10px"><button class="ghost" onclick="view.archive=null; render()">‹ 返回当月</button><button onclick="window.print()">导出 PDF</button></div>${slipHTML(a, true)}${archiveListHTML()}`;
+    view.archive = null;
+  }
+  const ym = view.ym || ymNow();
+  const d = salaryCalc(ym);
+  const saved = db.payslips.find(p => p.ym === ym);
+  return `<div class="row noprint" style="justify-content:space-between;margin-bottom:10px">
+      <button class="ghost" onclick="shiftComm(-1)">‹ 上月</button>
+      <b class="mtitle">工资单　${ym}</b>
+      <button class="ghost" onclick="shiftComm(1)">下月 ›</button>
+    </div>
+    <div class="row noprint" style="justify-content:flex-end;margin-bottom:10px">
+      <button class="ghost" onclick="savePayslip()">${saved ? '更新存档' : '保存存档'}</button>
+      <button onclick="window.print()">导出 PDF</button>
+    </div>
+    ${slipHTML(d, false)}
+    ${archiveListHTML()}`;
+}
+function savePayslip(){
+  const ym = view.ym || ymNow();
+  const d = salaryCalc(ym);
+  const old = db.payslips.find(p => p.ym === ym);
+  d.id = old ? old.id : uid();
+  d.savedAt = todayKey();
+  db.payslips = db.payslips.filter(p => p.ym !== ym);
+  db.payslips.push(d);
+  downloadCsv(d);
+  save(); render();
+}
+function downloadCsv(d){
+  const head = ['月份','基本薪金','佣金','总收入','EPF','SISCO','EIF','LINDUNGI','实发工资','存档日期'];
+  const row = [d.ym, d.base, d.comm, d.gross, d.epf, d.sisco, d.eif, d.lindungi, d.net, d.savedAt];
+  const csv = '\ufeff' + head.join(',') + '\n' + row.join(',') + '\n';
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `工资_${d.ym}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function delPayslip(id){
+  db.payslips = db.payslips.filter(p => p.id !== id);
+  save(); render();
+}
+function delStudent(id){
+  const s = db.students.find(x => x.id === id);
+  if (pendingDel !== id) { pendingDel = id; render(); return; }
+  pendingDel = null;
+  db.students = db.students.filter(x => x.id !== id);
+  db.classes = db.classes.filter(x => x.sid !== id);
+  save(); go('students');
+}
+function perClassComm(s){ return s.total ? (s.price / s.total) * ((s.rate || 30) / 100) : 0; }
+function commOf(s){
+  const { pkgs, used } = pkgUsage(s);
+  return pkgs.reduce((sum, p, i) => sum + (p.total ? (p.price / p.total) * ((p.rate || 30) / 100) * used[i] : 0), 0);
+}
+function studentHTML(){
+  const s = db.students.find(x => x.id === view.sid);
+  if (!s) { view.name = 'students'; return studentsHTML(); }
+  const st = stats(s), tk = todayKey();
+  const hist = db.classes.filter(c => c.sid === s.id).sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time));
+  const rows = hist.map(c => {
+    const status = c.done ? '<span style="color:var(--ok)">√ 已出席</span>' : (c.date < tk ? '未出席' : '待上');
+    return `<tr><td>${c.date}</td><td>${esc(fmt12(c.time))}</td><td>${esc(c.focus) || '—'}</td><td><label class="row" style="gap:4px"><input type="checkbox" style="width:auto" ${c.done ? 'checked' : ''} onchange="toggleAttend('${c.id}')"> ${status}</label></td><td><button class="ghost danger" onclick="quickDel('${c.id}')">删除这节课</button></td></tr>`;
+  }).join('');
+  return `<div class="row" style="margin-bottom:10px"><button class="ghost" onclick="go('students')">‹ 返回</button></div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between"><h1>${esc(s.name)}</h1><button class="ghost" onclick="studentForm('${s.id}')">编辑</button></div>
+      <div class="muted" style="margin:6px 0">${s.type === 'Trial' ? '试上' : '套餐'} · 套餐价格 RM ${s.price || 0} · 电话 ${esc(s.phone) || '—'} · 目标 ${esc(s.goal) || '—'}</div>
+      <div class="row" style="gap:24px;margin:10px 0">
+        <div><div class="muted">已上</div><b>${st.used}</b></div>
+        <div><div class="muted">总课时</div><b>${st.total || '—'}</b></div>
+        <div><div class="muted">剩余</div><b>${st.total ? st.left : '—'}</b></div>
+        <div><div class="muted">累计佣金</div><b>RM ${commOf(s).toFixed(2)}</b></div>
+      </div>
+      ${pkgBlockHTML(s)}
+      ${s.notes ? `<div class="muted">备注：${esc(s.notes)}</div>` : ''}
+    </div>
+    <div class="card" style="margin-top:12px">
+      <table><tr><th>日期</th><th>时间</th><th>内容</th><th>出席</th><th></th></tr>
+      ${rows || '<tr><td colspan="4" class="muted">还没有上课记录</td></tr>'}</table>
+    </div>
+    <div style="text-align:right;margin-top:12px"><button class="ghost danger" onclick="delStudent('${s.id}')">${pendingDel === s.id ? '再按一次确认删除' : '删除学员'}</button></div>`;
+}
+
+/* ---------- render ---------- */
+function render(){
+  if (!authed) return renderLogin();
+  const body = view.name === 'cal' ? calHTML() : view.name === 'year' ? yearHTML() : view.name === 'salary' ? salaryHTML() : view.name === 'comm' ? commHTML() : view.name === 'students' ? studentsHTML() : studentHTML();
+  const onStudents = view.name === 'students' || view.name === 'student';
+  $('app').innerHTML = `<header>
+      <h1>Abs Fitness 排课</h1>
+      <nav>
+        <button class="${view.name === 'cal' || view.name === 'year' ? '' : 'ghost'}" onclick="go('cal')">日历</button>
+        <button class="${onStudents ? '' : 'ghost'}" onclick="go('students')">学员</button>
+        <button class="${view.name === 'comm' ? '' : 'ghost'}" onclick="go('comm')">佣金</button>
+        <button class="${view.name === 'salary' ? '' : 'ghost'}" onclick="go('salary')">工资</button>
+        
+      </nav>
+    </header>${body}`;
+}
+
+/* ---------- drag a class to another day ---------- */
+let suppressClick = false, drag = null;
+function dayClick(k){ if (!suppressClick) openDay(k); }
+function evClick(e, sid){ e.stopPropagation(); if (!suppressClick) go('student', sid); }
+function dayAt(x, y){ return document.elementFromPoint(x, y)?.closest('.day[data-d]')?.dataset.d || null; }
+function markDrop(x, y){
+  const t = dayAt(x, y);
+  document.querySelectorAll('.day.drop').forEach(el => { if (el.dataset.d !== t) el.classList.remove('drop'); });
+  if (t) document.querySelector(`.day[data-d="${t}"]`)?.classList.add('drop');
+}
+document.addEventListener('pointerdown', e => {
+  const el = e.target.closest?.('.ev[data-id], .pev[data-id]');
+  if (!el) return;
+  drag = { id: el.dataset.id, el, x: e.clientX, y: e.clientY, active: false, ghost: null };
+});
+document.addEventListener('pointermove', e => {
+  if (!drag) return;
+  if (!drag.active) {
+    if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
+    drag.active = true;
+    drag.ghost = drag.el.cloneNode(true);
+    drag.ghost.classList.add('ghost');
+    document.body.appendChild(drag.ghost);
+    drag.el.classList.add('dragging');
+  }
+  e.preventDefault();
+  drag.ghost.style.left = e.clientX + 'px';
+  drag.ghost.style.top = e.clientY + 'px';
+  markDrop(e.clientX, e.clientY);
+}, { passive: false });
+function endDrag(e, cancel){
+  if (!drag) return;
+  const d = drag; drag = null;
+  if (!d.active) return;
+  d.ghost.remove(); d.el.classList.remove('dragging');
+  document.querySelectorAll('.day.drop').forEach(el => el.classList.remove('drop'));
+  suppressClick = true; setTimeout(() => suppressClick = false, 50);
+  if (cancel) return;
+  const target = dayAt(e.clientX, e.clientY);
+  const c = db.classes.find(x => x.id === d.id);
+  const item = d.el.dataset.kind === 'event' ? db.events.find(x => x.id === d.id) : db.classes.find(x => x.id === d.id); if (target && item && item.date !== target) { item.date = target; save(); render(); }
+}
+document.addEventListener('pointerup', e => endDrag(e, false));
+document.addEventListener('pointercancel', e => endDrag(e, true));
+
+$('modal').onclick = e => { if (e.target.id === 'modal') closeModal(); };
+try {
+  render();
+} catch (err) {
+  document.body.innerHTML = '<div style="padding:20px;color:#4a3426;font-family:sans-serif"><h1>页面加载出错</h1><pre style="white-space:pre-wrap">' + esc(err && err.stack ? err.stack : err) + '</pre></div>';
+}
+</script>
+</body>
+</html>
